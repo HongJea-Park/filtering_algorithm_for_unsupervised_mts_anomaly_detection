@@ -107,8 +107,7 @@ class Chunk_Filter():
                                             e_vector_XA=e_vector_list[i],
                                             e_vector_XB=e_vector_list[j],
                                             p_XA=p_list[i],
-                                            p_XB=p_list[j],
-                                            metric=self.metric)
+                                            p_XB=p_list[j])
                 self.dc_array[i, j] = dc
                 self.rc_array[i, j] = rc
                 self.vc_array[i, j] = vc
