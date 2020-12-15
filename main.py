@@ -123,18 +123,13 @@ def main():
 
     data_name = \
         f'{anomaly_type}_ratio_{str(anomaly_ratio)[2:]:<03s}'
-    label_name = f'{data_name}_filtering_{filtering}'
-    if filtering:
-        label_name += f'_iqr_multiplier{iqr_multiplier}'
-    model_name += f'_{label_name}'
+    model_name += f'_{data_name}_filtering_{filtering}'
 
     torch.manual_seed(random_state)
     torch.cuda.manual_seed(random_state)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     vis = Custom_Vis()
-    print(f'data: {data_name} \n'
-          f'model: {model_name} \n')
 
     # Generate synthetic data and split train, valid and test set
     generator = Generator(random_state=random_state)
@@ -159,6 +154,7 @@ def main():
 
     # apply filtering or not
     if filtering:
+        model_name += f'_iqr_multiplier{iqr_multiplier}'
         start = time.time()
         mts_filter = Chunk_Filter(data=chunk_data)
         filter_pred = mts_filter.fit(matrix_type='nng',
@@ -181,8 +177,12 @@ def main():
                       lof_score=mts_filter.lof_score)
         clear = False
     else:
+        iqr_multiplier = 0
         filter_pred = np.zeros(shape=train_valid_data.shape[0])
         clear = True
+
+    print(f'data: {data_name} \n'
+          f'model: {model_name} \n')
 
     train_data, train_label = \
         train_valid_data[:t_idx], train_valid_label[:t_idx]
@@ -369,7 +369,7 @@ def main():
 
     with open('./result.csv', 'a') as f:
         f.write(f'{random_state}, {anomaly_type}, {anomaly_ratio}, '
-                f'{model_name.split("_")[0]}, {auroc}\n')
+                f'{iqr_multiplier}, {model_name.split("_")[0]}, {auroc}\n')
 
 
 if __name__ == "__main__":
