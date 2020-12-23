@@ -81,7 +81,7 @@ class Dataset(Dataset):
                           overlap_size=self.overlap_size)
         if self.filtering:
             label = label[self.chunk_pred]
-        return label.reshape(-1, self.win_size)[:, -1]
+        return (label.sum(axis=1) > 0).astype(int).reshape(-1)
 
 
 class ConvLSTMCell(nn.Module):
@@ -401,7 +401,7 @@ class Model(nn.Module):
         return d1
 
 
-def train(model: torch.nn.Module,
+def train(model: nn.Module,
           train_loader: torch.utils.data.dataloader.DataLoader,
           optimizer: torch.optim, epoch: int):
     train_loss = 0
@@ -416,7 +416,6 @@ def train(model: torch.nn.Module,
         num_data += batch_size
         X, target = X.to(device), target.to(device)
         output = model(X)
-        # TODO: modify if want to use variational autoencoder
         loss = _loss_MSCRED(output, target)
         train_loss += loss.item()
         train_loss_list.append(loss.item())
@@ -431,7 +430,7 @@ def train(model: torch.nn.Module,
     return avg_train_loss, train_loss_list, batch_list
 
 
-def valid(model: torch.nn.Module,
+def valid(model: nn.Module,
           valid_loader: torch.utils.data.dataloader.DataLoader):
     valid_loss = 0
     num_data = 0
@@ -455,7 +454,7 @@ def valid(model: torch.nn.Module,
     return avg_valid_loss, score
 
 
-def get_score(model: torch.nn.Module,
+def get_score(model: nn.Module,
               data_loader: torch.utils.data.dataloader.DataLoader):
     score = np.array([])
     device = torch_device(model)

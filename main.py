@@ -56,7 +56,7 @@ parser.add_argument('--normalization',
 parser.add_argument('--model_name',
                     type=str,
                     default='MSCRED',
-                    choices=['MSCRED', 'SeqAE'],
+                    choices=['MSCRED', 'SeqAE', 'DeepAnT', 'LSTM'],
                     help='model name')
 parser.add_argument('--lr',
                     type=float,
@@ -93,6 +93,10 @@ if args.model_name == 'MSCRED':
     from model.MSCRED import *
 elif args.model_name == 'SeqAE':
     from model.SeqAE import *
+elif args.model_name == 'DeepAnT':
+    from model.DeepAnT import *
+elif args.model_name == 'LSTM':
+    from model.LSTM import *
 
 
 def main():
@@ -341,7 +345,7 @@ def main():
     test_dataset = Dataset(data=test_data,
                            filtering=False,
                            y_pred=None,
-                           time_step=3)
+                           time_step=1)
     test_loader = DataLoader(dataset=test_dataset,
                              batch_size=batch_size,
                              shuffle=False,
