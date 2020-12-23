@@ -1,2 +1,2 @@
-Filtering Algorithm for Auto-Encoder based Unsupervised Multivariate Time Series Anomaly Detection
+Filtering Algorithm for Unsupervised Multivariate Time Series Anomaly Detection
 =============================================
