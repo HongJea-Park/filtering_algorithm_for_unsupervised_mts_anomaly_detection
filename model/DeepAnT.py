@@ -59,16 +59,18 @@ class Dataset(Dataset):
 
 class Model(nn.Module):
     """
-    DeepAnT class instance.
     """
-    def __init__(self, num_feature: int = 25):
+    def __init__(self, subsequence_len: int = 30, num_feature: int = 25):
         super(Model, self).__init__()
+        self.subsequence_len = subsequence_len
         self.num_feature = num_feature
-        self.conv1d_layer1 = _conv1d_sequential(self.num_feature, 512)
-        self.conv1d_layer2 = _conv1d_sequential(512, 512)
+        self.conv1d_layer1, self.output_len = _conv1d_sequential(
+            self.subsequence_len, self.num_feature, 256)
+        self.conv1d_layer2, self.output_len = _conv1d_sequential(
+            self.output_len, 256, 256)
         self.flatten_layer = nn.Flatten()
-        self.dense_layer1 = _dense_sequential(512, 256)
-        self.dense_layer2 = nn.Linear(256, self.num_feature)
+        self.dense_layer1 = _dense_sequential(self.output_len*256, 128)
+        self.dense_layer2 = nn.Linear(128, self.num_feature)
 
     def forward(self, x):
         x = x.permute(0, 2, 1)
@@ -153,14 +155,17 @@ def _anomaly_score(recon_x, x):
     return nn.MSELoss(reduction='none')(recon_x, x).sum(axis=1)
 
 
-def _conv1d_sequential(in_channels: int, out_channels: int):
-    return nn.Sequential(
+def _conv1d_sequential(subsequence_len: int,
+                       in_channels: int,
+                       out_channels: int):
+    layer = nn.Sequential(
         nn.Conv1d(in_channels=in_channels,
                   out_channels=out_channels,
                   kernel_size=3),
         nn.ReLU(),
         nn.MaxPool1d(kernel_size=2)
     )
+    return layer, int((subsequence_len-2)/2)
 
 
 def _dense_sequential(in_features: int, out_features: int):
