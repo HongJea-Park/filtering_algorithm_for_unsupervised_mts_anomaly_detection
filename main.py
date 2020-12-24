@@ -371,7 +371,7 @@ def main():
                           anomaly_label=test_label,
                           anomaly_score=anomaly_score)
 
-    with open('./result.csv', 'a') as f:
+    with open(f'./{args.model_name}.csv', 'a') as f:
         f.write(f'{random_state}, {anomaly_type}, {anomaly_ratio}, '
                 f'{iqr_multiplier}, {model_name.split("_")[0]}, {auroc}\n')
 
