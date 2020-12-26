@@ -6,22 +6,21 @@ from itertools import product
 from sklearn.preprocessing import MinMaxScaler
 
 from data.synthetic import Generator
-from filters.chunkfilter import Chunk_Filter
+from filtering.chunkfilter import Chunk_Filter
 from utils.seq2chunk import seq2chunk
 
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 
-def main(n_neighbors, filter_size, anomaly_ratio, anomaly_type, matrix_type,
-         iqr_multiplier):
+def main(random_state, n_neighbors, filter_size, anomaly_ratio, anomaly_type,
+         matrix_type, iqr_multiplier):
     # about synthetic data
     data_len = 300000
     num_feature = 25
     n_neighbors = 20
     filter_size = 30
     normalization = True
-    random_state = 42
     t_idx = int(data_len * 0.3)
     v_idx = int(data_len * 0.5)
     generator = Generator(random_state=random_state)
@@ -46,7 +45,7 @@ def main(n_neighbors, filter_size, anomaly_ratio, anomaly_type, matrix_type,
 
     start = time.time()
     mts_filter = Chunk_Filter(data=chunk_data)
-    filter_pred = mts_filter.fit_filtering(
+    filter_pred = mts_filter.fit(
         matrix_type=matrix_type,
         n_neighbors=n_neighbors,
         iqr_multiplier=iqr_multiplier,
@@ -54,6 +53,7 @@ def main(n_neighbors, filter_size, anomaly_ratio, anomaly_type, matrix_type,
     acc, recall, precision, f1 = \
         mts_filter.get_metric(train_valid_label)
     filter_result = {
+        'random_state': random_state,
         'anomaly_type': anomaly_type,
         'anomaly_ratio': anomaly_ratio,
         'matrix_type': matrix_type,
@@ -72,6 +72,7 @@ def main(n_neighbors, filter_size, anomaly_ratio, anomaly_type, matrix_type,
 
 def result_to_csv(results):
     df = {}
+    df['random_state'] = []
     df['anomaly_type'] = []
     df['anomaly_ratio'] = []
     df['matrix_type'] = []
@@ -84,6 +85,7 @@ def result_to_csv(results):
     df['filtered'] = []
 
     for result in results:
+        df['random_state'].append(result['random_state'])
         df['anomaly_type'].append(result['anomaly_type'])
         df['anomaly_ratio'].append(result['anomaly_ratio'])
         df['matrix_type'].append(result['matrix_type'])
@@ -102,6 +104,7 @@ def result_to_csv(results):
 if __name__ == "__main__":
 
     n_cpu = mp.cpu_count()
+    random_state_list = [42, 21, 7, 14, 28]
     n_neighbors_list = [20]
     filter_size = [30]
     anomaly_ratio_list = [0.001, 0.005, 0.01, 0.05, 0.1]
@@ -109,7 +112,8 @@ if __name__ == "__main__":
     matrix_type = ['full', 'nng']
     iqr_multiplier_list = [1.5, 3.0]
 
-    hyper_parameter_list = list(product(*[n_neighbors_list,
+    hyper_parameter_list = list(product(*[random_state_list,
+                                          n_neighbors_list,
                                           filter_size,
                                           anomaly_ratio_list,
                                           anomaly_type_list,
