@@ -68,7 +68,7 @@ parser.add_argument('--batch_size',
                     help='batch size')
 parser.add_argument('--epoch',
                     type=argtype.integer_or_inf,
-                    default=200,
+                    default=400,
                     help='the number of epoch')
 parser.add_argument('--patience',
                     type=argtype.integer_or_inf,
@@ -185,8 +185,8 @@ def main():
         filter_pred = np.zeros(shape=train_valid_data.shape[0])
         clear = True
 
-    print(f'data: {data_name} \n'
-          f'model: {model_name} \n')
+    print(f'data: {data_name}_seed_{random_state} \n'
+          f'model: {model_name}')
 
     train_data, train_label = \
         train_valid_data[:t_idx], train_valid_label[:t_idx]
@@ -374,6 +374,8 @@ def main():
     with open(f'./{args.model_name}.csv', 'a') as f:
         f.write(f'{random_state}, {anomaly_type}, {anomaly_ratio}, '
                 f'{iqr_multiplier}, {model_name.split("_")[0]}, {auroc}\n')
+
+    print('-'*50)
 
 
 if __name__ == "__main__":

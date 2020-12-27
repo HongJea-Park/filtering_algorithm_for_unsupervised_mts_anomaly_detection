@@ -149,7 +149,9 @@ class Early_stopping():
 
         if self.patience != np.inf:
             print('\rEarlyStopping',
-                  '>'*self.counter + '|'*(self.patience-self.counter), '| \n')
+                  '>'*self.counter + '|'*(self.patience-self.counter), '|',
+                  end='\r',
+                  flush=True)
 
         return self.early_stop, self.is_best
 
@@ -165,6 +167,8 @@ def torch_device(model):
 
 
 def update_epoch(epoch: int, n_seq: int, n_f_seq: int, batch_size: int):
+    if epoch == np.inf:
+        return epoch
     total_update = int(np.ceil(n_seq / batch_size)) * epoch
     num_update_per_epoch = int(np.ceil(n_f_seq / batch_size))
     num_update = num_update_per_epoch * epoch
