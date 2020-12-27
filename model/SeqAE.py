@@ -54,7 +54,7 @@ class Dataset(Dataset):
                           overlap_size=self.overlap_size)
         if self.filtering:
             label = label[self.chunk_pred]
-        return (label.sum(axis=1) > 0).astype(int).reshape(-1)
+        return label.reshape(-1, self.win_size)[:, -1]
 
 
 class Encoder(nn.Module):
