@@ -1,3 +1,4 @@
+import curses
 import argparse
 import time
 import numpy as np
@@ -72,7 +73,7 @@ parser.add_argument('--epoch',
                     help='the number of epoch')
 parser.add_argument('--patience',
                     type=argtype.integer_or_inf,
-                    default='inf',
+                    default=15,
                     help='patience for early stopping')
 parser.add_argument('--retrain',
                     type=argtype.boolean,
@@ -99,7 +100,7 @@ elif args.model_name == 'LSTM':
     from model.LSTM import *
 
 
-def main():
+def main(stdscr):
     # about synthetic data
     anomaly_ratio = args.anomaly_ratio
     anomaly_type = args.anomaly_type
@@ -181,12 +182,38 @@ def main():
                       lof_score=mts_filter.lof_score)
         clear = False
     else:
+        acc, recall, precision, f1 = None, None, None, None
         iqr_multiplier = 0
         filter_pred = np.zeros(shape=train_valid_data.shape[0])
         clear = True
 
-    print(f'data: {data_name}_seed_{random_state} \n'
-          f'model: {model_name}')
+    # initialize curses module
+    curses.use_default_colors()
+    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
+    stdscr = curses.initscr()
+    stdscr.addstr(0, 0, f'{"-"*10}Data and Filtering Information{"-"*10}',
+                  curses.color_pair(4) | curses.A_BOLD)
+    stdscr.addstr(1, 0, f'data: {data_name}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(2, 0, f'seed: {random_state}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(3, 0, f'model: {model_name}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(4, 0, f'filtering accuracy: {acc}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(5, 0, f'filtering recall: {recall}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(6, 0, f'filtering precision: {precision}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(7, 0, f'filtering f1: {f1}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(7, 0, f'filtering f1: {f1}',
+                  curses.color_pair(3) | curses.A_BOLD)
+    stdscr.addstr(8, 0, f'{"-"*10}Model Training Information{"-"*10}',
+                  curses.color_pair(4) | curses.A_BOLD)
 
     train_data, train_label = \
         train_valid_data[:t_idx], train_valid_label[:t_idx]
@@ -297,8 +324,37 @@ def main():
         # apply scheduler
         scheduler.step()
 
+        # record training time
+        iter_time = time.time() - batch_time
+        training_time += iter_time
+
+        # print process
+        stdscr.addstr(9, 0, f'Epoch: ',
+                      curses.color_pair(1) | curses.A_BOLD)
+        stdscr.addstr(f'{e}/{epoch}',
+                      curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(10, 0, f'train time: ',
+                      curses.color_pair(1) | curses.A_BOLD)
+        stdscr.addstr(f'{training_time}',
+                      curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(11, 0, f'iteration time: ',
+                      curses.color_pair(1) | curses.A_BOLD)
+        stdscr.addstr(f'{iter_time}',
+                      curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(12, 0, f'train loss: ',
+                      curses.color_pair(1) | curses.A_BOLD)
+        stdscr.addstr(f'{t_loss}',
+                      curses.color_pair(2) | curses.A_BOLD)
+        stdscr.addstr(13, 0, f'valid_loss: ',
+                      curses.color_pair(1) | curses.A_BOLD)
+        stdscr.addstr(f'{v_loss}',
+                      curses.color_pair(2) | curses.A_BOLD)
+
         # count for early stop and save log
-        early_stop, is_best = early_stopping(score=v_loss, lower_best=True)
+        early_stop, is_best = early_stopping(score=v_loss,
+                                             curses=curses,
+                                             stdscr=stdscr,
+                                             lower_best=True)
         checkpoint.save_log(batch_list=batch_list,
                             epoch=e,
                             train_loss_list_per_batch=t_loss_list,
@@ -307,6 +363,7 @@ def main():
         checkpoint.save_checkpoint(model=model,
                                    optimizer=optimizer,
                                    is_best=is_best)
+        stdscr.refresh()
 
         # get filtered score at each epoch
         if filtering:
@@ -314,10 +371,6 @@ def main():
                                        data_loader=filtered_loader)
         else:
             filtered_score = None
-
-        # record training time
-        iter_time = time.time() - batch_time
-        training_time += iter_time
 
         # visualization for training process
         vis.print_training(env=model_name,
@@ -379,4 +432,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    curses.wrapper(main)

@@ -122,7 +122,7 @@ class Early_stopping():
         self.delta = delta
         self.is_best = False
 
-    def __call__(self, score: float, lower_best: bool = True):
+    def __call__(self, score: float, curses, stdscr, lower_best: bool = True):
         if self.best_score is None:
             self.best_score = score
             self.is_best = True
@@ -148,10 +148,11 @@ class Early_stopping():
                 self.is_best = True
 
         if self.patience != np.inf:
-            print('\rEarlyStopping',
-                  '>'*self.counter + '|'*(self.patience-self.counter), '|',
-                  end='\r',
-                  flush=True)
+            stdscr.addstr(14, 0, 'EarlyStopping: ',
+                          curses.color_pair(1) | curses.A_BOLD)
+            stdscr.addstr(
+                '>'*self.counter+'|'*(self.patience-self.counter)+'| ',
+                curses.color_pair(2) | curses.A_BOLD)
 
         return self.early_stop, self.is_best
 
