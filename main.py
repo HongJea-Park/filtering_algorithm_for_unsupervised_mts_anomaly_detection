@@ -335,11 +335,11 @@ def main(stdscr):
                       curses.color_pair(2) | curses.A_BOLD)
         stdscr.addstr(10, 0, f'train time: ',
                       curses.color_pair(1) | curses.A_BOLD)
-        stdscr.addstr(f'{training_time}',
+        stdscr.addstr(f'{int(training_time//60):2d}m {training_time%60:5.2f}s',
                       curses.color_pair(2) | curses.A_BOLD)
         stdscr.addstr(11, 0, f'iteration time: ',
                       curses.color_pair(1) | curses.A_BOLD)
-        stdscr.addstr(f'{iter_time}',
+        stdscr.addstr(f'{int(iter_time//60):2d}m {iter_time%60:5.2f}s',
                       curses.color_pair(2) | curses.A_BOLD)
         stdscr.addstr(12, 0, f'train loss: ',
                       curses.color_pair(1) | curses.A_BOLD)
