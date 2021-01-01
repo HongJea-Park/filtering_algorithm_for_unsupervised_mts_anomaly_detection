@@ -103,6 +103,8 @@ class Model(nn.Module):
         hidden, cell = self.encoder(inputs)
 
         for t in range(target_len):
+            if batch_size == 1:
+                output = output.view(batch_size, num_feature)
             output, hidden, cell = self.decoder(output, hidden, cell)
             outputs[:, t, :] = output
             teacher_force = random.random() < tf_ratio
