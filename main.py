@@ -425,8 +425,8 @@ def main(stdscr):
                           anomaly_score=anomaly_score)
 
     with open(f'./{args.model_name}.csv', 'a') as f:
-        f.write(f'{random_state}, {anomaly_type}, {anomaly_ratio}, '
-                f'{iqr_multiplier}, {model_name.split("_")[0]}, {auroc}\n')
+        f.write(f'{random_state},{anomaly_type},{anomaly_ratio}, '
+                f'{iqr_multiplier},{model_name.split("_")[0]},{auroc}\n')
 
     print('-'*50)
 
